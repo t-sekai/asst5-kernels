@@ -1,9 +1,9 @@
-from utils import make_match_reference, DeterministicContext
+from utils import DeterministicContext
 import torch
 from task import input_t, output_t
 
 
-def ref_kernel(data: input_t) -> output_t:
+def custom_kernel(data: input_t) -> output_t:
     """
     Reference implementation of 3D heat diffusion using a 9-point stencil
     and 4th-order Runge–Kutta (RK4) time integration using PyTorch.
@@ -143,39 +143,3 @@ def ref_kernel(data: input_t) -> output_t:
             u, f = f, u
 
         return u
-
-
-def generate_input(grid_size: int, n_steps: int, seed: int) -> input_t:
-    """
-    Generates random 3D initial field input.
-    Args:
-        grid_size: 1 dimension of cubic grid input (Nx = Ny = Nz = grid_size)
-        n_steps: number of RK4 time steps
-        seed: for random number generator
-    Returns:
-        Tuple of (u0, alpha, hx, hy, hz, n_steps)
-    """
-    assert grid_size >= 9
-
-    gen = torch.Generator(device="cuda")
-    gen.manual_seed(seed)
-
-    # Random diffusion coefficient alpha in [0.1, 5.0]
-    alpha = torch.rand(1, generator=gen, device="cuda", dtype=torch.float32) * 4.9 + 0.1
-
-    # Random grid spacings hx, hy, hz in [0.5, 2.0]
-    hx = torch.rand(1, generator=gen, device="cuda", dtype=torch.float32) * 1.5 + 0.5
-    hy = torch.rand(1, generator=gen, device="cuda", dtype=torch.float32) * 1.5 + 0.5
-    hz = torch.rand(1, generator=gen, device="cuda", dtype=torch.float32) * 1.5 + 0.5
-
-    # Generate input field: [grid_size, grid_size, grid_size]
-    #Distribution: Standard normal (mean=0, std=1) via torch.randn()
-    u0 = torch.randn(
-        grid_size, grid_size, grid_size,
-        device="cuda", dtype=torch.float32, generator=gen
-    ).contiguous()
-
-    return u0, alpha, hx, hy, hz, n_steps
-
-
-check_implementation = make_match_reference(ref_kernel, rtol=1e-6, atol=1e-6)

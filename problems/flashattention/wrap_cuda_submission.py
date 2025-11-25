@@ -17,10 +17,6 @@ def create_submission():
     # Read text
     raw_cuda_source = Path(cuda_source_path).read_text()
 
-    # escape curly braces '{' -> '{{' and '}' -> '}}'
-    # because we are inserting this string into a Python f-string below.
-    cuda_source_escaped = raw_cuda_source.replace("{", "{{").replace("}", "}}")
-
     # 2. Define the content for the new submission.py file
     submission_content = f'''import torch
 from task import input_t, output_t
@@ -32,7 +28,7 @@ import io
 # 1. CUDA Source Code (Injected automatically)
 # ------------------------------------------------------
 cuda_source = """
-{cuda_source_escaped}
+{raw_cuda_source}
 """
 
 # ------------------------------------------------------
@@ -51,7 +47,7 @@ torch::Tensor flash_attention_forward(torch::Tensor Q, torch::Tensor K, torch::T
 if sys.stdout is None: sys.stdout = io.StringIO()
 if sys.stderr is None: sys.stderr = io.StringIO()
 
-print("Compiling FlashAttention CUDA kernel... (This may take a moment)")
+# print("Compiling FlashAttention CUDA kernel... (This may take a moment)")
 
 cuda_module = load_inline(
     name='flash_attention_cuda',
@@ -62,7 +58,7 @@ cuda_module = load_inline(
     with_cuda=True,
     extra_cuda_cflags=["-O2"]
 )
-print("Compilation complete.")
+# print("Compilation complete.")
 
 # ------------------------------------------------------
 # 4. Python Wrapper
