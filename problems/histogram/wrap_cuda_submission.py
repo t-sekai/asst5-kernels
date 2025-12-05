@@ -68,10 +68,6 @@ def custom_kernel(data: input_t) -> output_t:
 
     array, num_bins = data
     
-    # Ensure input is int32 and on CUDA
-    if array.dtype != torch.int32:
-        array = array.to(torch.int32)
-    
     if not array.is_cuda:
         array = array.cuda()
     

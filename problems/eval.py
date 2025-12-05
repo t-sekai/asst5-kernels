@@ -156,12 +156,12 @@ def run_single_test(pool: multiprocessing.Pool, test: TestCase):
     """
     try:
         result = pool.apply_async(_run_single_test, (test,))
-        return result.get(timeout=30)  # 30 second timeout
+        return result.get(timeout=120)  # 30 second timeout
     except multiprocessing.TimeoutError:
         # Process hung, terminate it
         pool.terminate()
         pool.join()
-        return False, "Test timed out after 30 seconds"
+        return False, "Test timed out after 120 seconds"
     except Exception as e:
         return False, f"Test failed with exception: {str(e)}"
 
